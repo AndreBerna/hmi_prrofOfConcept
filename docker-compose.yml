@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  broker:
+    image: emqx/nanomq:0.21.6
+    container_name: hmi-nanomq
+    command: ["nanomq", "start", "--conf", "/etc/nanomq.conf"]
+    volumes:
+      - ./broker/nanomq.conf:/etc/nanomq.conf:ro
+    ports:
+      - "1883:1883"
+      - "8083:8083"
+    restart: unless-stopped
+
+  simulator:
+    build:
+      context: ./simulator
+    container_name: hmi-simulator
+    environment:
+      MQTT_URL: mqtt://broker:1883
+      MQTT_TOPIC_PREFIX: hmi/metrics
+    depends_on:
+      - broker
+    restart: unless-stopped
+
+  hmi:
+    build:
+      context: ./frontend
+    container_name: hmi-frontend
+    environment:
+      VITE_MQTT_URL: ws://broker:8083/mqtt
+      VITE_MQTT_TOPIC: hmi/metrics/#
+    ports:
+      - "8080:8080"
+    depends_on:
+      - broker
+      - simulator
+    restart: unless-stopped
