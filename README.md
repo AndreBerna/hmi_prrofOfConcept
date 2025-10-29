@@ -1,6 +1,6 @@
 # Podman Automotive HMI Proof of Concept
 
-This repository packages a complete automotive HMI dashboard prototype. It demonstrates a NanoMQ broker, a high-frequency TypeScript telemetry simulator, and a Vue 3/Vite dashboard accelerated with OffscreenCanvas workers. Everything runs locally with Podman or Docker via `podman compose up -d`.
+This repository packages a complete automotive HMI dashboard prototype. It demonstrates a NanoMQ broker, a high-frequency TypeScript telemetry simulator, and a Vue 3/Vite dashboard accelerated with OffscreenCanvas workers. Everything runs locally with Podman or Docker via the native `podman compose` plugin, the standalone `podman-compose` shim, or `docker compose`.
 
 ## Architecture
 
