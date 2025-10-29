@@ -23,17 +23,12 @@ if [[ ${NEEDS_DEFAULT_FILE} -eq 1 && -f docker-compose.yml ]]; then
   set -- -f docker-compose.yml "$@"
 fi
 
-# Reuse the same connectivity hint in every Podman code path.
-require_podman_connection() {
-  echo "Podman is installed but no active service connection is available." >&2
-  echo "Start or connect to a Podman machine (e.g. 'podman machine init' and 'podman machine start') and retry." >&2
-}
-
 # Prefer the native Podman compose plugin when available.
 if command -v podman >/dev/null 2>&1; then
   if podman compose version >/dev/null 2>&1; then
     if ! podman info >/dev/null 2>&1; then
-      require_podman_connection
+      echo "Podman is installed but no active service connection is available." >&2
+      echo "Start or connect to a Podman machine (e.g. 'podman machine init' and 'podman machine start') and retry." >&2
       exit 125
     fi
     exec podman compose "$@"
@@ -42,10 +37,6 @@ fi
 
 # Fall back to the standalone podman-compose Python script.
 if command -v podman-compose >/dev/null 2>&1; then
-  if command -v podman >/dev/null 2>&1 && ! podman info >/dev/null 2>&1; then
-    require_podman_connection
-    exit 125
-  fi
   exec podman-compose "$@"
 fi
 
