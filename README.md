@@ -86,14 +86,14 @@ Open http://127.0.0.1:8080 in a modern browser with OffscreenCanvas support (Chr
 
 ### NanoMQ fails to start with `Unrecognized .` / `syntax error`
 
-These errors indicate the broker could not parse its configuration file. The repository ships with a NanoMQ v0.21-compatible config at `broker/nanomq.conf`. Verify that your compose run mounts the file read-only (it does by default) and that no local edits introduced invalid top-level keys. Restoring the file from git fixes the issue:
+These errors indicate the broker could not parse its configuration file. The repository ships with a NanoMQ v0.21-compatible config at `broker/nanomq.conf`. Verify that your compose run mounts the file read-only (it does by default) and that no local edits introduced invalid keys. Restoring the file from git fixes the issue:
 
 ```bash
 git checkout -- broker/nanomq.conf
 ./scripts/compose.sh restart broker
 ```
 
-If you need to customize listeners, keep the hierarchical block syntax used in the sample (e.g., `listeners { ws { ... } }`).
+When adding additional listeners stick to the dot-prefixed blocks NanoMQ expects (e.g., `listeners.ws { ... }`).
 
 ## Project layout
 
