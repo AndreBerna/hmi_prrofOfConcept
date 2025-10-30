@@ -21,18 +21,40 @@ The HMI keeps rendering overhead under 10 ms by diffing dirty metrics and redraw
 
 ## Quick start
 
-```bash
-# Verify that Podman has a compose frontend
-podman compose version  # installs via `podman-plugins` if missing
+1. **Confirm Podman connectivity**
+   ```bash
+   podman info
+   ```
+   If this fails, run `podman machine init` (first time only) followed by `podman machine start` and retry.
 
-# Launch all services in the background (starts fastest when Podman is already running)
-./scripts/compose.sh up -d
+2. **Ensure a Compose frontend is available**
+   ```bash
+   podman compose version   # or `podman-compose --version`, `docker compose version`
+   ```
+   Install the missing toolchain if the command is not found (see the troubleshooting matrix below).
 
-# Watch container logs (optional)
-./scripts/compose.sh logs -f
-```
+3. **Start the full stack**
+   ```bash
+   ./scripts/compose.sh up -d
+   ```
+   The helper automatically prefers `podman compose`, falls back to `podman-compose`, and finally tries `docker compose`.
 
-> 💡 `scripts/compose.sh` automatically prefers `podman compose`, falls back to `podman-compose`, and finally tries `docker compose`. It preflights `podman info` so you'll get a clear reminder to start `podman machine` before the shim runs.
+4. **Tail the logs (optional but recommended for first run)**
+   ```bash
+   ./scripts/compose.sh logs -f
+   ```
+   You should see NanoMQ announce both listeners, the simulator printing `Simulator connected to mqtt://broker:1883`, and the frontend `http-server` banner once the build finishes.
+
+5. **Open the dashboard**
+   Visit [http://127.0.0.1:8080](http://127.0.0.1:8080). Twenty metrics animate in a 4×5 grid and the debug overlay shows FPS, render time, and latency statistics. Refreshing the page immediately repopulates values thanks to retained MQTT messages.
+
+6. **Shut everything down**
+   ```bash
+   ./scripts/compose.sh down
+   ```
+   This stops containers while keeping the built images cached for the next launch.
+
+> 💡 The helper script injects the repository `docker-compose.yml` automatically, so you can run the commands above from any subdirectory within the repo.
 
 ### Podman compose troubleshooting
 
@@ -61,6 +83,17 @@ Once the machine is running, rerun `./scripts/compose.sh up -d`.
 Podman 3.x predates the default short-name registry hints used by modern images. If you see build errors such as `short-name "node:20-alpine" did not resolve to an alias`, update to Podman 4.x+ or keep the fully-qualified references included in this repository. The compose services that build locally are tagged as `localhost/<name>` so Podman treats them as local images instead of pulling from a registry. When adding new base images, prefer the `docker.io/<namespace>/<image>:<tag>` form or configure `/etc/containers/registries.conf` with explicit short-name aliases.
 
 Open http://127.0.0.1:8080 in a modern browser with OffscreenCanvas support (Chrome, Edge, or Firefox Nightly). You should see 20 animated widgets with a live performance overlay.
+
+### NanoMQ fails to start with `Unrecognized .` / `syntax error`
+
+These errors indicate the broker could not parse its configuration file. The repository ships with a NanoMQ v0.21-compatible config at `broker/nanomq.conf`. Verify that your compose run mounts the file read-only (it does by default) and that no local edits introduced invalid top-level keys. Restoring the file from git fixes the issue:
+
+```bash
+git checkout -- broker/nanomq.conf
+./scripts/compose.sh restart broker
+```
+
+If you need to customize listeners, keep the hierarchical block syntax used in the sample (e.g., `listeners { ws { ... } }`).
 
 ## Project layout
 
