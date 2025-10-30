@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   broker:
-    image: emqx/nanomq:0.21.6
+    image: docker.io/emqx/nanomq:0.21.6
     container_name: hmi-nanomq
     command: ["nanomq", "start", "--conf", "/etc/nanomq.conf"]
     volumes:
@@ -15,6 +15,7 @@ services:
   simulator:
     build:
       context: ./simulator
+    image: localhost/hmi-metric-simulator:latest
     container_name: hmi-simulator
     environment:
       MQTT_URL: mqtt://broker:1883
@@ -26,6 +27,7 @@ services:
   hmi:
     build:
       context: ./frontend
+    image: localhost/hmi-dashboard:latest
     container_name: hmi-frontend
     environment:
       VITE_MQTT_URL: ws://broker:8083/mqtt
