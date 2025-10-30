@@ -51,15 +51,15 @@ class SimpleMqttPublisher {
         this.socket?.write(connectPacket);
       });
 
-      this.socket.once("error", (err: NodeJS.ErrnoException) => {
+      this.socket.once("error", (err) => {
         reject(err);
       });
 
-      this.socket.on("error", (err: NodeJS.ErrnoException) => {
+      this.socket.on("error", (err) => {
         console.error("MQTT socket error", err);
       });
 
-      this.socket.on("data", (chunk: Buffer) => {
+      this.socket.on("data", (chunk) => {
         if (!this.isReady && chunk.length >= 4) {
           if (chunk[0] === 0x20 && chunk[1] >= 0x02 && chunk[3] === 0x00) {
             this.isReady = true;
